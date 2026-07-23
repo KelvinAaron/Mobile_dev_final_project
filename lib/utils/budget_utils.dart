@@ -9,10 +9,8 @@ class BudgetAlert {
 
 double _asDouble(Object? value) => (value as num?)?.toDouble() ?? 0;
 
-Future<List<BudgetAlert>> checkBudgetLimits(
-  Database db,
-  String userPhone,
-) async {
+// spending per category
+Future<List<BudgetAlert>> checkBudgetLimits(Database db, String userPhone) async {
   final alerts = <BudgetAlert>[];
 
   final settingsRows = await db.query(
@@ -51,12 +49,10 @@ Future<List<BudgetAlert>> checkBudgetLimits(
       totalSpending += await categoryTotal(table, filter);
     }
     if (totalSpending > generalLimit) {
-      alerts.add(
-        BudgetAlert(
-          category: 'Overall Monthly Spending',
-          exceeded: totalSpending - generalLimit,
-        ),
-      );
+      alerts.add(BudgetAlert(
+        category: 'Overall Monthly Spending',
+        exceeded: totalSpending - generalLimit,
+      ));
     }
   }
 
@@ -74,23 +70,11 @@ Future<List<BudgetAlert>> checkBudgetLimits(
     }
   }
 
-  await checkCategory(
-    'Money_Transfer_Limit',
-    'Money Transfers',
-    'Money_Transfers',
-    filter: "AND Transaction_Type = 'sent'",
-  );
-  await checkCategory(
-    'Bank_Transfer_Limit',
-    'Bank Transfers',
-    'Bank_Transfers',
-    filter: "AND Transaction_Type = 'sent'",
-  );
-  await checkCategory(
-    'Merchant_Limit',
-    'Merchant Payments',
-    'Merchant_Payment',
-  );
+  await checkCategory('Money_Transfer_Limit', 'Money Transfers', 'Money_Transfers',
+      filter: "AND Transaction_Type = 'sent'");
+  await checkCategory('Bank_Transfer_Limit', 'Bank Transfers', 'Bank_Transfers',
+      filter: "AND Transaction_Type = 'sent'");
+  await checkCategory('Merchant_Limit', 'Merchant Payments', 'Merchant_Payment');
   await checkCategory('Bundles_Limit', 'Bundles', 'Bundles');
   await checkCategory('Utilities_Limit', 'Utilities', 'Utilities');
   await checkCategory('Agent_Limit', 'Agents', 'Agent_Transactions');
