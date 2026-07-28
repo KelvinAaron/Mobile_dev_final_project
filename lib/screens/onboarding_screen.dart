@@ -6,7 +6,6 @@ class OnboardingSettings {
   OnboardingSettings({required this.monthlyLimit});
 }
 
-/// Ported from `OnboardingScreen.tsx`, rebranded to Finmo.
 class OnboardingScreen extends StatefulWidget {
   final void Function(OnboardingSettings settings) onComplete;
 
@@ -94,7 +93,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: 48,
                       height: 48,
                       decoration: const BoxDecoration(color: Color(0xFFF87171), shape: BoxShape.circle),
-                      child: const Center(child: Text('🔔', style: TextStyle(fontSize: 24))),
+                      child: const Center(child: Icon(Icons.notifications, size: 24, color: Colors.white)),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -161,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(top: 2),
-                      child: Text('✓', style: TextStyle(fontSize: 20, color: Color(0xFF10B981))),
+                      child: Icon(Icons.check_circle, size: 20, color: Color(0xFF10B981)),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -193,7 +192,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   minimumSize: const Size.fromHeight(56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Get Started ✓', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Get Started', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                    SizedBox(width: 8),
+                    Icon(Icons.check, size: 18),
+                  ],
+                ),
               ),
             ],
           ),

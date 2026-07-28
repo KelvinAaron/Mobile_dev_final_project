@@ -20,7 +20,7 @@ class SmsService {
 
   final Telephony _telephony = Telephony.instance;
 
-  /// Reads M-Money SMS from the inbox extracting balance and transactions.
+  // Reads M-Money SMS from the inbox extracting balance and transactions.
   Future<SmsSyncResult?> readMMoneyMessages({
     required Database db,
     required String userPhone,

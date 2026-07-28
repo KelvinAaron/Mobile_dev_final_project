@@ -1,10 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-/// Sign In / Sign Up toggle. Rebuilt from `LoginScreen.tsx` — the original's
-/// dead "Sign Up" link is now a real mode switch. Sign Up additionally
-/// collects a phone number, which is the key the rest of the local schema
-/// and Firestore documents are built around.
+// Sign In / Sign Up toggle uses phone number as key
 class AuthScreen extends StatefulWidget {
   final Future<void> Function(String email, String password) onSignIn;
   final Future<void> Function(String email, String phone, String password) onSignUp;
@@ -65,7 +62,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } on FirebaseAuthException catch (e) {
       setState(() => _errorMessage = e.message ?? 'Something went wrong. Please try again.');
     } catch (e) {
-      setState(() => _errorMessage = 'Something went wrong. Please try again.');
+      setState(() => _errorMessage = e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

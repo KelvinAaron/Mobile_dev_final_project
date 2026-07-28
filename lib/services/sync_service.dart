@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../database/database.dart';
 
-// Local SQLite table name compared to the Firestore subcollection name.
+// Local SQLite table name similar to the Firestore subcollection name.
 const Map<String, String> _collectionForTable = {
   'Money_Transfers': 'money_transfers',
   'Merchant_Payment': 'merchant_payments',

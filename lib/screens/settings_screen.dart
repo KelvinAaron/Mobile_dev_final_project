@@ -230,7 +230,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('ℹ️ How it works', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0C4A6E))),
+                  Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 16, color: Color(0xFF0C4A6E)),
+                      SizedBox(width: 6),
+                      Text('How it works', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0C4A6E))),
+                    ],
+                  ),
                   SizedBox(height: 8),
                   Text(
                     '• Set a limit for any category (enter 0 or leave blank for no limit)\n'
