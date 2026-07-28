@@ -233,23 +233,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return DateFormat.yMd().format(date);
   }
 
-  String _categoryIcon(String category) {
+  IconData _categoryIcon(String category) {
     switch (category) {
       case 'Airtime':
       case 'Data':
-        return '📱';
+        return Icons.smartphone;
       case 'Utility':
-        return '⚡';
+        return Icons.bolt;
       case 'Merchant':
-        return '🛒';
+        return Icons.shopping_cart;
       case 'Bank':
-        return '🏦';
+        return Icons.account_balance;
       case 'Agent':
-        return '🏪';
+        return Icons.store;
       case 'Other':
-        return '📋';
+        return Icons.category;
       default:
-        return '💸';
+        return Icons.attach_money;
     }
   }
 
@@ -330,7 +330,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         style: const TextStyle(fontSize: 16, color: Color(0xFF1F2937)),
                       ),
                     ),
-                    const Text('🔍', style: TextStyle(fontSize: 18)),
+                    const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
                   ],
                 ),
               ),
@@ -342,7 +342,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 children: [
                   Expanded(
                     child: _SummaryCard(
-                      icon: '↓',
+                      icon: Icons.arrow_downward,
                       iconBg: const Color(0xFFD1FAE5),
                       iconColor: const Color(0xFF059669),
                       label: 'Received',
@@ -352,7 +352,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _SummaryCard(
-                      icon: '↑',
+                      icon: Icons.arrow_upward,
                       iconBg: const Color(0xFFFEE2E2),
                       iconColor: const Color(0xFFDC2626),
                       label: 'Sent',
@@ -394,7 +394,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Center(
-                                      child: Text(isReceived ? '↓' : _categoryIcon(t.category), style: const TextStyle(fontSize: 20)),
+                                      child: Icon(
+                                        isReceived ? Icons.arrow_downward : _categoryIcon(t.category),
+                                        size: 20,
+                                        color: const Color(0xFF1F2937),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -463,7 +467,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 }
 
 class _SummaryCard extends StatelessWidget {
-  final String icon;
+  final IconData icon;
   final Color iconBg;
   final Color iconColor;
   final String label;
@@ -492,7 +496,7 @@ class _SummaryCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-            child: Center(child: Text(icon, style: TextStyle(fontSize: 20, color: iconColor))),
+            child: Center(child: Icon(icon, size: 20, color: iconColor)),
           ),
           const SizedBox(width: 12),
           Expanded(

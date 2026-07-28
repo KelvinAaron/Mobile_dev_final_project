@@ -35,7 +35,7 @@ final _phoneRegex = RegExp(r'\((\**\d+)\)');
 
 // pass the momo message into various categories
 ParsedMomoMessage parseMomoMessage(String body, String userNumber) {
-  // --- MONEY TRANSFERS (RECEIVED) ---
+  // money transfers (received)
   if (body.contains('You have received')) {
     final name = _firstMatch(RegExp(r'from (\w+\s\w+)'), body);
     final amount = _parseAmount(_firstMatch(RegExp(r'received ([\d,]+) RWF'), body));

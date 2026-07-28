@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <application
-        android:label="finmo"
+        android:label="Finmo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

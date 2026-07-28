@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Ported from `SendMoneyScreen.tsx`. Builds a USSD code and opens the phone
-/// dialer with it pre-filled — no real transfer happens, same as the original.
+// builds a USSD code and opens the phone app with pre-filled string
 class SendMoneyScreen extends StatefulWidget {
   final VoidCallback? onSuccess;
 

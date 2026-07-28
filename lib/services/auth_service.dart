@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-//this uses email and password from firebase_auth and user signs in once per device and 
-//only needs to sign in again after an explicit sign-out or on a new device.
+// uses email and password from firebase_auth and user signs in once per device and 
+//monly needs to sign in again after an explicit sign-out or on a new device.
 
 class AuthService {
   AuthService._();
