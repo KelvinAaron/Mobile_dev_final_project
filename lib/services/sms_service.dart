@@ -39,7 +39,7 @@ class SmsService {
     );
 
     int? latestBalance;
-    for (final msg in messages) {
+    for (final msg in messages.reversed) {
       final balance = extractBalance(msg.body ?? '');
       if (balance != null) {
         latestBalance = balance;
