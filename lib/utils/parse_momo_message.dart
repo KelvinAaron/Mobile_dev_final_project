@@ -106,7 +106,7 @@ ParsedMomoMessage parseMomoMessage(String body, String userNumber) {
     return ParsedMomoMessage(table: 'Agent_Transactions', data: {
       'Transaction_Id': id,
       'Phone_Number': userNumber,
-      'Agent_Name': agentName,
+      'Agent_Name': agentName ?? 'Mobile Money Agent',
       'Amount': amount,
       'Fee': fee,
       'Date': date,
@@ -159,7 +159,7 @@ ParsedMomoMessage parseMomoMessage(String body, String userNumber) {
     return ParsedMomoMessage(table: 'Utilities', data: {
       'Transaction_Id': id,
       'Phone_Number': userNumber,
-      'Name': name,
+      'Name': name ?? 'Utility',
       'Amount': amount,
       'Fee': fee,
       'Date': date,

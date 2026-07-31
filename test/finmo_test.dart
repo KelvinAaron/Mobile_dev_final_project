@@ -6,6 +6,7 @@ import 'package:finmo/database/database.dart';
 import 'package:finmo/utils/budget_utils.dart';
 import 'package:finmo/utils/extract_balance.dart';
 import 'package:finmo/utils/parse_momo_message.dart';
+import 'package:finmo/utils/sqlite_date.dart';
 
 const _phone = '250780000000';
 
@@ -19,6 +20,21 @@ Future<Database> _openTestDb() async {
 Widget _wrapOverlay(Widget child) => MaterialApp(home: Scaffold(body: Stack(children: [child])));
 
 void main() {
+  group('SQLite date formatting', () {
+    test('uses the same sortable format as transaction rows', () {
+      expect(
+        toSqliteDate(DateTime(2026, 7, 3, 9, 5, 2)),
+        '2026-07-03 09:05:02',
+      );
+    });
+
+    test('formatted dates preserve chronological string ordering', () {
+      final earlier = toSqliteDate(DateTime(2026, 7, 1));
+      final later = toSqliteDate(DateTime(2026, 7, 30));
+      expect(earlier.compareTo(later), lessThan(0));
+    });
+  });
+
   // parseMomoMessage
 
   group('parseMomoMessage', () {
@@ -194,6 +210,26 @@ void main() {
       expect(extractBalance('your balance 250 RWF'), 250);
     });
 
+    test('extracts when balance uses "is" and RWF precedes the value', () {
+      expect(extractBalance('Your balance is RWF 21,705.'), 21705);
+    });
+
+    test('extracts decimal-formatted balances', () {
+      expect(extractBalance('Available balance - 21,705.00 RWF'), 21705);
+    });
+
+    test('treats a dot followed by three digits as a thousands separator', () {
+      expect(extractBalance('Your new balance: 21.705 RWF'), 21705);
+    });
+
+    test('extracts balances grouped with spaces', () {
+      expect(extractBalance('Available balance is RWF 21 705'), 21705);
+    });
+
+    test('extracts balances containing non-breaking spaces', () {
+      expect(extractBalance('Your new balance:\u00A021,705\u00A0RWF'), 21705);
+    });
+
     test('prefers the more specific "Your new balance" pattern when multiple could match', () {
       const body = 'Balance: 999 RWF. Your new balance: 21,705 RWF.';
       expect(extractBalance(body), 21705);
@@ -205,6 +241,17 @@ void main() {
 
     test('returns null for malformed balance text with no digits', () {
       expect(extractBalance('Your new balance: RWF'), isNull);
+    });
+
+    test('selects the newest balance by timestamp regardless of inbox order', () {
+      final messages = [
+        (body: 'Your new balance: 9,000 RWF', timestamp: 3000),
+        (body: 'Your new balance: 4,000 RWF', timestamp: 1000),
+        (body: 'Your new balance: 7,000 RWF', timestamp: 2000),
+      ];
+
+      expect(latestSmsBalance(messages), 9000);
+      expect(latestSmsBalance(messages.reversed), 9000);
     });
   });
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -33,28 +35,105 @@ class SyncService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  static String normalizePhoneNumber(String phoneNumber) {
+    var digits = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length == 10 && digits.startsWith('0')) {
+      digits = '250${digits.substring(1)}';
+    } else if (digits.length == 9) {
+      digits = '250$digits';
+    }
+    return digits;
+  }
+
+  Future<bool> deleteTransaction({
+    required Database db,
+    required String uid,
+    required String phoneNumber,
+    required String table,
+    required String id,
+  }) async {
+    final idColumn = AppDatabase.transactionTables[table];
+    final collectionName = _collectionForTable[table];
+    if (idColumn == null || collectionName == null) {
+      throw ArgumentError('Unsupported transaction table: $table');
+    }
+
+    await db.transaction((txn) async {
+      await txn.insert(
+        'Deletion_Tombstones',
+        {
+          'Firebase_Uid': uid,
+          'Table_Name': table,
+          'Collection_Name': collectionName,
+          'Document_Id': id,
+          'Cloud_Deleted': 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await txn.delete(
+        table,
+        where: '$idColumn = ? AND Phone_Number = ?',
+        whereArgs: [id, phoneNumber],
+      );
+    });
+
+    // Cloud I/O must never delay the local UI. The tombstone makes this safe:
+    // it is retried during every sync and prevents the row being re-created.
+    unawaited(
+      _flushDeletionTombstones(
+        db: db,
+        uid: uid,
+      ).catchError((Object _) {
+        // The durable tombstone will retry on the next sync.
+      }),
+    );
+    return false;
+  }
+
+  Future<void> _flushDeletionTombstones({
+    required Database db,
+    required String uid,
+  }) async {
+    final pending = await db.query(
+      'Deletion_Tombstones',
+      where: 'Firebase_Uid = ? AND Cloud_Deleted = 0',
+      whereArgs: [uid],
+    );
+    for (final tombstone in pending) {
+      final collectionName = tombstone['Collection_Name'] as String;
+      final documentId = tombstone['Document_Id'] as String;
+      try {
+        await _firestore
+            .collection('users')
+            .doc(uid)
+            .collection(collectionName)
+            .doc(documentId)
+            .delete();
+        await db.update(
+          'Deletion_Tombstones',
+          {'Cloud_Deleted': 1},
+          where: 'Firebase_Uid = ? AND Table_Name = ? AND Document_Id = ?',
+          whereArgs: [uid, tombstone['Table_Name'], documentId],
+        );
+      } catch (_) {
+        // Keep the tombstone pending. A later manual or automatic sync retries.
+      }
+    }
+  }
+
   Future<int> pushLocalToCloud({
     required Database db,
     required String uid,
     required String phoneNumber,
   }) async {
     final userDoc = _firestore.collection('users').doc(uid);
+    await _flushDeletionTombstones(db: db, uid: uid);
 
-    final userRows = await db.query('Users', where: 'Phone_Number = ?', whereArgs: [phoneNumber], limit: 1);
-    final settingsRows =
-        await db.query('Settings', where: 'Phone_Number = ?', whereArgs: [phoneNumber], limit: 1);
-
-    final profile = <String, Object?>{'Phone_Number': phoneNumber};
-    if (userRows.isNotEmpty) {
-      profile['Name'] = userRows.first['Name'];
-      profile['Amount'] = userRows.first['Amount'];
-    }
-    if (settingsRows.isNotEmpty) {
-      for (final field in _settingsFields) {
-        profile[field] = settingsRows.first[field];
-      }
-    }
-    await userDoc.set(profile, SetOptions(merge: true));
+    await pushProfileToCloud(
+      db: db,
+      uid: uid,
+      phoneNumber: phoneNumber,
+    );
 
     var pushedCount = 0;
     for (final table in AppDatabase.transactionTables.keys) {
@@ -80,6 +159,33 @@ class SyncService {
     }
 
     return pushedCount;
+  }
+
+  Future<void> pushProfileToCloud({
+    required Database db,
+    required String uid,
+    required String phoneNumber,
+  }) async {
+    final userDoc = _firestore.collection('users').doc(uid);
+    final userRows = await db.query('Users', where: 'Phone_Number = ?', whereArgs: [phoneNumber], limit: 1);
+    final settingsRows =
+        await db.query('Settings', where: 'Phone_Number = ?', whereArgs: [phoneNumber], limit: 1);
+
+    final profile = <String, Object?>{
+      'Firebase_Uid': uid,
+      'Phone_Number': phoneNumber,
+      'Updated_At': FieldValue.serverTimestamp(),
+    };
+    if (userRows.isNotEmpty) {
+      profile['Name'] = userRows.first['Name'];
+      profile['Amount'] = userRows.first['Amount'];
+    }
+    if (settingsRows.isNotEmpty) {
+      for (final field in _settingsFields) {
+        profile[field] = settingsRows.first[field];
+      }
+    }
+    await userDoc.set(profile, SetOptions(merge: true));
   }
 
   // Pulls all cloud data down into the local SQLite DB(for example on a new phone or when logged out).
@@ -121,6 +227,14 @@ class SyncService {
       final collectionName = _collectionForTable[table]!;
       final snap = await userDoc.collection(collectionName).get();
       for (final doc in snap.docs) {
+        final tombstone = await db.query(
+          'Deletion_Tombstones',
+          columns: ['Document_Id'],
+          where: 'Firebase_Uid = ? AND Table_Name = ? AND Document_Id = ?',
+          whereArgs: [uid, table, doc.id],
+          limit: 1,
+        );
+        if (tombstone.isNotEmpty) continue;
         await db.insert(table, Map<String, Object?>.from(doc.data()), conflictAlgorithm: ConflictAlgorithm.ignore);
       }
     }

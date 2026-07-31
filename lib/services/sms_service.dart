@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:another_telephony/telephony.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../database/database.dart';
 import '../utils/extract_balance.dart';
 import '../utils/parse_momo_message.dart';
+import '../utils/sqlite_date.dart';
 
 class SmsSyncResult {
   final int insertedCount;
@@ -38,14 +40,14 @@ class SmsService {
       sortOrder: [OrderBy(SmsColumn.DATE, sort: Sort.ASC)],
     );
 
-    int? latestBalance;
-    for (final msg in messages.reversed) {
-      final balance = extractBalance(msg.body ?? '');
-      if (balance != null) {
-        latestBalance = balance;
-        break;
-      }
-    }
+    final latestBalance = latestSmsBalance(
+      messages.map(
+        (message) => (
+          body: message.body ?? '',
+          timestamp: message.date,
+        ),
+      ),
+    );
     if (latestBalance != null) {
       await db.update(
         'Users',
@@ -62,10 +64,38 @@ class SmsService {
       if (msgDate > maxMsgDate) maxMsgDate = msgDate;
 
       final parsed = parseMomoMessage(msg.body ?? '', userPhone);
+      final data = Map<String, Object?>.from(parsed.data);
+      final parsedDate = data['Date'] as String?;
+      if (parsedDate == null || parsedDate.trim().isEmpty) {
+        data['Date'] = toSqliteDate(
+          DateTime.fromMillisecondsSinceEpoch(msgDate),
+        );
+      }
+      final idColumn = AppDatabase.transactionTables[parsed.table]!;
+      final documentId = data[idColumn] as String;
+      final deleted = await db.query(
+        'Deletion_Tombstones',
+        columns: ['Document_Id'],
+        where: 'Table_Name = ? AND Document_Id = ?',
+        whereArgs: [parsed.table, documentId],
+        limit: 1,
+      );
+      if (deleted.isNotEmpty) {
+        // Also repairs the narrow race where an SMS scan began just before the
+        // user confirmed deletion.
+        await db.delete(
+          parsed.table,
+          where: '$idColumn = ?',
+          whereArgs: [documentId],
+        );
+        continue;
+      }
       final rowId = await db.insert(
         parsed.table,
-        parsed.data,
-        conflictAlgorithm: ConflictAlgorithm.ignore,
+        data,
+        // Replaces a previously imported copy whose parser-derived Date was
+        // null, while keeping the deterministic transaction ID.
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
       if (rowId != 0) insertedCount++;
     }

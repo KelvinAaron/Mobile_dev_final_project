@@ -7,6 +7,8 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback? onSave;
   final Future<int> Function() onSyncNow;
   final VoidCallback onLogout;
+  final bool isLightMode;
+  final ValueChanged<bool> onLightModeChanged;
 
   const SettingsScreen({
     super.key,
@@ -15,6 +17,8 @@ class SettingsScreen extends StatefulWidget {
     this.onSave,
     required this.onSyncNow,
     required this.onLogout,
+    required this.isLightMode,
+    required this.onLightModeChanged,
   });
 
   @override
@@ -84,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await db.insert('Settings', row, conflictAlgorithm: ConflictAlgorithm.replace);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Budget limits saved successfully')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Budget limits saved successfully')));
     widget.onSave?.call();
   }
 
@@ -97,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .showSnackBar(SnackBar(content: Text('Synced $count transaction(s) to the cloud.')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sync failed. Please try again.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sync failed. Please try again.')));
     } finally {
       if (mounted) setState(() => _isSyncing = false);
     }
@@ -107,11 +111,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Log out'),
-        content: const Text('You will need to sign in again on this device.'),
+        title: Text('Log out'),
+        content: Text('You will need to sign in again on this device.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Log out')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Log out')),
         ],
       ),
     );
@@ -120,33 +124,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _limitInput(String label, String key) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF374151))),
-          const SizedBox(height: 8),
+          Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controllers[key],
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '0 = no limit',
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
-                const Text('RWF', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
+                Text('RWF', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -157,47 +161,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFFEF3C7),
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
-          child: Center(child: Text('Loading settings...', style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)))),
+          child: Center(child: Text('Loading settings...', style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant))),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF3C7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 40),
           children: [
-            const Text('Budget Limits', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
-            const SizedBox(height: 8),
-            const Text('Set monthly spending limits (0 = no limit)', style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
-            const SizedBox(height: 24),
+            Text('Settings', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              padding: EdgeInsets.all(16),
+              margin: EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16)),
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: Icon(widget.isLightMode ? Icons.light_mode : Icons.dark_mode),
+                title: Text(widget.isLightMode ? 'Light mode' : 'Dark mode'),
+                subtitle: Text('Tap to switch between light and dark themes'),
+                value: widget.isLightMode,
+                onChanged: widget.onLightModeChanged,
+              ),
+            ),
+            Text('Budget Limits', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+            SizedBox(height: 8),
+            Text('Set monthly spending limits (0 = no limit)', style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            SizedBox(height: 24),
+            Container(
+              padding: EdgeInsets.all(16),
+              margin: EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Overall Spending', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
-                  const SizedBox(height: 16),
+                  Text('Overall Spending', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
+                  SizedBox(height: 16),
                   _limitInput('Monthly General Limit', 'general'),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              padding: EdgeInsets.all(16),
+              margin: EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Category Limits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
-                  const SizedBox(height: 16),
+                  Text('Category Limits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
+                  SizedBox(height: 16),
                   _limitInput('Money Transfers', 'moneyTransfer'),
                   _limitInput('Bank Transfers', 'bankTransfer'),
                   _limitInput('Merchant Payments', 'merchant'),
@@ -211,30 +231,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ElevatedButton(
               onPressed: _saveLimits,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFBBF24),
-                foregroundColor: const Color(0xFF1F2937),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                minimumSize: const Size.fromHeight(56),
+                backgroundColor: Color(0xFFFBBF24),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                padding: EdgeInsets.symmetric(vertical: 16),
+                minimumSize: Size.fromHeight(56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Save Limits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text('Save Limits', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFDBEAFE),
+                color: isDark ? Color(0xFF17263A) : Color(0xFFDBEAFE),
                 borderRadius: BorderRadius.circular(12),
-                border: const Border(left: BorderSide(color: Color(0xFF0284C7), width: 4)),
+                border: Border(left: BorderSide(color: Color(0xFF0284C7), width: 4)),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info_outline, size: 16, color: Color(0xFF0C4A6E)),
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: isDark ? Color(0xFF93C5FD) : Color(0xFF0C4A6E),
+                      ),
                       SizedBox(width: 6),
-                      Text('How it works', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0C4A6E))),
+                      Text(
+                        'How it works',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Color(0xFF93C5FD) : Color(0xFF0C4A6E),
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 8),
@@ -243,30 +274,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     '• If you exceed a limit, an alert will appear at the top of the app\n'
                     '• Limits apply only to monthly spending\n'
                     '• Check your spending on the Spending tab',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF0C4A6E), height: 1.5),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Color(0xFFBFDBFE) : Color(0xFF0C4A6E),
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Cloud Sync', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
-                  const SizedBox(height: 4),
-                  const Text(
+                  Text('Cloud Sync', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
+                  SizedBox(height: 4),
+                  Text(
                     'Finmo backs up automatically once a day when you open the app. You can also sync manually.',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: _isSyncing ? null : _handleSyncNow,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      minimumSize: const Size.fromHeight(48),
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: Size.fromHeight(48),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(_isSyncing ? 'Syncing...' : 'Sync now'),
@@ -274,17 +309,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             OutlinedButton(
               onPressed: _handleLogout,
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFDC2626),
-                side: const BorderSide(color: Color(0xFFDC2626)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                minimumSize: const Size.fromHeight(48),
+                foregroundColor: Color(0xFFDC2626),
+                side: BorderSide(color: Color(0xFFDC2626)),
+                padding: EdgeInsets.symmetric(vertical: 14),
+                minimumSize: Size.fromHeight(48),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Log out'),
+              child: Text('Log out'),
             ),
           ],
         ),
