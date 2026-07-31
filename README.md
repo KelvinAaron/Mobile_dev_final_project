@@ -5,6 +5,9 @@ MTN Mobile Money users. It turns transaction SMS messages into a searchable,
 categorized spending history, provides budget warnings, and backs local data up
 to Firebase.
 
+
+Demo video: [youtu.be/mouEgvzG3sU](https://youtu.be/mouEgvzG3sU)
+
 ## Features
 
 - Email/password and Google authentication through Firebase Authentication
@@ -76,7 +79,6 @@ Android app registered in Firebase and the client entry in `google-services.json
    ```text
    android/app/google-services.json
    ```
-
 7. Confirm the Google Services Gradle plugin is enabled in the Android project.
 
 Do not publish production Firebase credentials or unrestricted Firestore rules.
