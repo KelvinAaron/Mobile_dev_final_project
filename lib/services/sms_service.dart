@@ -40,14 +40,14 @@ class SmsService {
       sortOrder: [OrderBy(SmsColumn.DATE, sort: Sort.ASC)],
     );
 
-    int? latestBalance;
-    for (final msg in messages.reversed) {
-      final balance = extractBalance(msg.body ?? '');
-      if (balance != null) {
-        latestBalance = balance;
-        break;
-      }
-    }
+    final latestBalance = latestSmsBalance(
+      messages.map(
+        (message) => (
+          body: message.body ?? '',
+          timestamp: message.date,
+        ),
+      ),
+    );
     if (latestBalance != null) {
       await db.update(
         'Users',

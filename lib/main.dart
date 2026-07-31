@@ -36,7 +36,7 @@ enum _AppStage { loading, auth, emailVerification, onboarding, main }
 const _lastSmsSyncPrefsKey = 'finmo_last_sms_sync';
 const _lastCloudSyncPrefsKey = 'finmo_last_cloud_sync';
 const _smsDateRepairPrefsKey = 'finmo_sms_date_repair_v1';
-const _balanceRepairPrefsKey = 'finmo_balance_parser_v2';
+const _balanceRepairPrefsKey = 'finmo_balance_parser_v3';
 const _cloudSyncInterval = Duration(hours: 24);
 
 String _smsSyncKeyFor(String uid) => '${_lastSmsSyncPrefsKey}_$uid';

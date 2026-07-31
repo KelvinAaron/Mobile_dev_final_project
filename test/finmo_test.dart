@@ -218,6 +218,14 @@ void main() {
       expect(extractBalance('Available balance - 21,705.00 RWF'), 21705);
     });
 
+    test('treats a dot followed by three digits as a thousands separator', () {
+      expect(extractBalance('Your new balance: 21.705 RWF'), 21705);
+    });
+
+    test('extracts balances grouped with spaces', () {
+      expect(extractBalance('Available balance is RWF 21 705'), 21705);
+    });
+
     test('extracts balances containing non-breaking spaces', () {
       expect(extractBalance('Your new balance:\u00A021,705\u00A0RWF'), 21705);
     });
@@ -233,6 +241,17 @@ void main() {
 
     test('returns null for malformed balance text with no digits', () {
       expect(extractBalance('Your new balance: RWF'), isNull);
+    });
+
+    test('selects the newest balance by timestamp regardless of inbox order', () {
+      final messages = [
+        (body: 'Your new balance: 9,000 RWF', timestamp: 3000),
+        (body: 'Your new balance: 4,000 RWF', timestamp: 1000),
+        (body: 'Your new balance: 7,000 RWF', timestamp: 2000),
+      ];
+
+      expect(latestSmsBalance(messages), 9000);
+      expect(latestSmsBalance(messages.reversed), 9000);
     });
   });
 
