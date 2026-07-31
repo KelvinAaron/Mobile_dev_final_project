@@ -202,6 +202,9 @@ request permissions only when needed.
 
 - Peter
 - Garang
+- Emmanuel
+- Jonathan
+- Kelvin
 
 Keep Git `user.name` and `user.email` configured consistently before committing so
 contribution statistics accurately represent each contributor.
