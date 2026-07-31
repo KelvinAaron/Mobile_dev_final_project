@@ -5,8 +5,18 @@ import 'package:flutter/material.dart';
 class AuthScreen extends StatefulWidget {
   final Future<void> Function(String email, String password) onSignIn;
   final Future<void> Function(String email, String phone, String password) onSignUp;
+  final Future<bool> Function() onGoogleSignIn;
+  final Future<void> Function(String phone) onCreateGoogleProfile;
+  final String? initialError;
 
-  const AuthScreen({super.key, required this.onSignIn, required this.onSignUp});
+  const AuthScreen({
+    super.key,
+    required this.onSignIn,
+    required this.onSignUp,
+    required this.onGoogleSignIn,
+    required this.onCreateGoogleProfile,
+    this.initialError,
+  });
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -22,6 +32,12 @@ class _AuthScreenState extends State<AuthScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _errorMessage = widget.initialError;
+  }
 
   @override
   void dispose() {
@@ -68,24 +84,70 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+    try {
+      final needsProfile = await widget.onGoogleSignIn();
+      if (!needsProfile || !mounted) return;
+
+      var phoneInput = _phoneController.text.trim();
+      final phone = await showDialog<String?>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Complete your Finmo profile'),
+          content: TextFormField(
+            initialValue: phoneInput,
+            onChanged: (value) => phoneInput = value.trim(),
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(
+              labelText: 'Phone number',
+              helperText: 'This is requested only for your first sign-in',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, phoneInput),
+              child: Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      if (phone == null || phone.isEmpty) return;
+      await widget.onCreateGoogleProfile(phone);
+    } on FirebaseAuthException catch (e) {
+      setState(() => _errorMessage = e.message ?? 'Google sign-in failed.');
+    } catch (e) {
+      setState(() => _errorMessage = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       filled: true,
-      fillColor: const Color(0xFF1F2937),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF374151)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF374151)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFFBBF24)),
+        borderSide: BorderSide(color: Color(0xFFFBBF24)),
       ),
     );
   }
@@ -93,23 +155,23 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32),
           child: Column(
             children: [
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Container(
                 width: 96,
                 height: 96,
-                decoration: const BoxDecoration(color: Color(0xFFFBBF24), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: Color(0xFFFBBF24), shape: BoxShape.circle),
                 child: Center(
                   child: Container(
                     width: 80,
                     height: 80,
-                    decoration: const BoxDecoration(color: Color(0xFF111827), shape: BoxShape.circle),
-                    child: const Center(
+                    decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor, shape: BoxShape.circle),
+                    child: Center(
                       child: Text(
                         'Finmo',
                         style: TextStyle(
@@ -123,111 +185,143 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               Text(
                 _isSignUp ? 'Create Account' : 'Welcome Back',
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 _isSignUp ? 'Sign up to manage your Finmo finances' : 'Sign in to manage your Finmo finances',
-                style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Email', style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 14)),
+                child: Text('Email', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextField(
                 controller: _emailController,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                 keyboardType: TextInputType.emailAddress,
                 autocorrect: false,
                 decoration: _inputDecoration('you@example.com'),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               if (_isSignUp) ...[
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Phone Number', style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 14)),
+                  child: Text('Phone Number', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 TextField(
                   controller: _phoneController,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                   keyboardType: TextInputType.phone,
                   decoration: _inputDecoration('+250 78X XXX XXX'),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Password', style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 14)),
+                child: Text('Password', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                 obscureText: !_showPassword,
                 decoration: _inputDecoration('Enter your password').copyWith(
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => _showPassword = !_showPassword),
                     icon: Icon(
                       _showPassword ? Icons.visibility_off : Icons.visibility,
-                      color: const Color(0xFF9CA3AF),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
               ),
               if (_isSignUp) ...[
-                const SizedBox(height: 20),
-                const Align(
+                SizedBox(height: 20),
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Confirm Password', style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 14)),
+                  child: Text('Confirm Password', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 TextField(
                   controller: _confirmPasswordController,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                   obscureText: !_showPassword,
                   decoration: _inputDecoration('Re-enter your password'),
                 ),
               ],
               if (_errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Text(_errorMessage!, style: const TextStyle(color: Color(0xFFF87171), fontSize: 13)),
+                SizedBox(height: 16),
+                Text(_errorMessage!, style: TextStyle(color: Color(0xFFF87171), fontSize: 13)),
               ],
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _handleSubmit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFBBF24),
-                    foregroundColor: const Color(0xFF111827),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Color(0xFFFBBF24),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _isSubmitting
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF111827)),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                         )
                       : Text(
                           _isSignUp ? 'Sign Up' : 'Sign In',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Theme.of(context).colorScheme.outline)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('OR', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                  ),
+                  Expanded(child: Divider(color: Theme.of(context).colorScheme.outline)),
+                ],
+              ),
+              SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isSubmitting ? null : _handleGoogleSignIn,
+                  icon: Text(
+                    'G',
+                    style: TextStyle(color: Color(0xFF4285F4), fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  label: Text('Continue with Google'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     _isSignUp ? 'Already have an account? ' : "Need an account? ",
-                    style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
                   ),
                   GestureDetector(
                     onTap: () => setState(() {
@@ -236,7 +330,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     }),
                     child: Text(
                       _isSignUp ? 'Sign In' : 'Sign Up',
-                      style: const TextStyle(color: Color(0xFFFBBF24), fontSize: 14, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: Color(0xFFFBBF24), fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],

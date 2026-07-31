@@ -18,12 +18,17 @@ class AppDatabase {
     final path = join(dbPath, 'finmo.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON;');
       },
       onCreate: (db, version) async {
         await createTables(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await _createDeletionTombstonesTable(db);
+        }
       },
     );
   }
@@ -141,6 +146,22 @@ class AppDatabase {
         Fee REAL DEFAULT 0,
         Date DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(Phone_Number) REFERENCES Users(Phone_Number) ON DELETE CASCADE
+      );
+    ''');
+
+    await _createDeletionTombstonesTable(db);
+  }
+
+  Future<void> _createDeletionTombstonesTable(Database db) {
+    return db.execute('''
+      CREATE TABLE IF NOT EXISTS Deletion_Tombstones (
+        Firebase_Uid TEXT NOT NULL,
+        Table_Name TEXT NOT NULL,
+        Collection_Name TEXT NOT NULL,
+        Document_Id TEXT NOT NULL,
+        Cloud_Deleted INTEGER NOT NULL DEFAULT 0,
+        Deleted_At DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (Firebase_Uid, Table_Name, Document_Id)
       );
     ''');
   }

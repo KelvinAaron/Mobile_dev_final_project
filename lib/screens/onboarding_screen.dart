@@ -32,10 +32,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(32, 60, 32, 32),
+          padding: EdgeInsets.fromLTRB(32, 60, 32, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -43,13 +43,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Container(
                   width: 80,
                   height: 80,
-                  decoration: const BoxDecoration(color: Color(0xFFFBBF24), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: Color(0xFFFBBF24), shape: BoxShape.circle),
                   child: Center(
                     child: Container(
                       width: 64,
                       height: 64,
-                      decoration: const BoxDecoration(color: Color(0xFF111827), shape: BoxShape.circle),
-                      child: const Center(
+                      decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor, shape: BoxShape.circle),
+                      child: Center(
                         child: Text(
                           'Finmo',
                           style: TextStyle(
@@ -64,27 +64,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-              const Center(
+              SizedBox(height: 24),
+              Center(
                 child: Text(
                   'Welcome to Finmo',
-                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(height: 8),
-              const Center(
+              SizedBox(height: 8),
+              Center(
                 child: Text(
                   "Let's personalize your experience",
-                  style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F2937),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF374151)),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,54 +92,54 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: const BoxDecoration(color: Color(0xFFF87171), shape: BoxShape.circle),
-                      child: const Center(child: Icon(Icons.notifications, size: 24, color: Colors.white)),
+                      decoration: BoxDecoration(color: Color(0xFFF87171), shape: BoxShape.circle),
+                      child: Center(child: Icon(Icons.notifications, size: 24, color: Theme.of(context).colorScheme.onSurface)),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Monthly Spending Limit',
-                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.w600),
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
+                          SizedBox(height: 12),
+                          Text(
                             "Set a monthly spending cap. You'll receive an alert when you exceed this limit.",
-                            style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14, height: 1.4),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14, height: 1.4),
                           ),
-                          const SizedBox(height: 8),
-                          const Text('Monthly Limit (RWF)', style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 14)),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
+                          Text('Monthly Limit (RWF)', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
+                          SizedBox(height: 8),
                           TextField(
                             controller: _limitController,
                             keyboardType: TextInputType.number,
-                            style: const TextStyle(color: Colors.white, fontSize: 16),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                             decoration: InputDecoration(
                               hintText: '0',
-                              hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                              hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                               filled: true,
-                              fillColor: const Color(0xFF111827),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF374151)),
+                                borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF374151)),
+                                borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFFBBF24)),
+                                borderSide: BorderSide(color: Color(0xFFFBBF24)),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
+                          SizedBox(height: 6),
+                          Text(
                             'Set to 0 to disable monthly limit alerts',
-                            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                           ),
                         ],
                       ),
@@ -147,26 +147,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF065F46),
-                  border: Border.all(color: const Color(0xFF10B981)),
+                  color: Color(0xFF065F46),
+                  border: Border.all(color: Color(0xFF10B981)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(top: 2),
                       child: Icon(Icons.check_circle, size: 20, color: Color(0xFF10B981)),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             "You're all set!",
                             style: TextStyle(color: Color(0xFF10B981), fontSize: 14, fontWeight: FontWeight.w600),
@@ -174,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           SizedBox(height: 4),
                           Text(
                             'You can change these settings anytime from the Settings menu.',
-                            style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12, height: 1.5),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.5),
                           ),
                         ],
                       ),
@@ -182,17 +182,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _handleComplete,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFBBF24),
-                  foregroundColor: const Color(0xFF111827),
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  minimumSize: const Size.fromHeight(56),
+                  backgroundColor: Color(0xFFFBBF24),
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  padding: EdgeInsets.symmetric(vertical: 18),
+                  minimumSize: Size.fromHeight(56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Get Started', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),

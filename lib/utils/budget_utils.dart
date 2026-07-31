@@ -1,5 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
+import 'sqlite_date.dart';
+
 class BudgetAlert {
   final String category;
   final double exceeded;
@@ -23,7 +25,7 @@ Future<List<BudgetAlert>> checkBudgetLimits(Database db, String userPhone) async
   final settings = settingsRows.first;
 
   final now = DateTime.now();
-  final monthStart = DateTime(now.year, now.month, 1).toIso8601String();
+  final monthStart = toSqliteDate(DateTime(now.year, now.month, 1));
 
   Future<double> categoryTotal(String table, String filter) async {
     final rows = await db.rawQuery(

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../styles/colors.dart';
+import '../utils/sqlite_date.dart';
 
 class SpendingScreen extends StatefulWidget {
   final Database? db;
@@ -66,8 +67,8 @@ class _SpendingScreenState extends State<SpendingScreen> {
 
     final now = DateTime.now();
     final startDate = widget.period == 'monthly'
-        ? DateTime(now.year, now.month, 1).toIso8601String()
-        : now.subtract(const Duration(days: 7)).toIso8601String();
+        ? toSqliteDate(DateTime(now.year, now.month, 1))
+        : toSqliteDate(now.subtract(Duration(days: 7)));
 
     Future<double> total(String table, String filter) async {
       final rows = await db.rawQuery(
@@ -109,61 +110,61 @@ class _SpendingScreenState extends State<SpendingScreen> {
     Widget row(String label, double value, Color color) {
       final pct = (value / safeTotal * 100).round();
       return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.only(bottom: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-                const SizedBox(width: 8),
-                Text(label, style: const TextStyle(fontSize: 14, color: Color(0xFF374151))),
+                SizedBox(width: 8),
+                Text(label, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
-            const SizedBox(height: 6),
-            Text('RWF ${numberFormat.format(value)}', style: const TextStyle(fontSize: 13, color: Color(0xFF1F2937))),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
+            Text('RWF ${numberFormat.format(value)}', style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
+            SizedBox(height: 6),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
                 value: (value / safeTotal).clamp(0.0, 1.0),
                 minHeight: 8,
-                backgroundColor: const Color(0xFFF3F4F6),
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             ),
-            const SizedBox(height: 6),
-            Text('$pct%', style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+            SizedBox(height: 6),
+            Text('$pct%', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF3C7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 80),
           children: [
-            const Text('Spending Breakdown', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1F2937))),
-            const SizedBox(height: 4),
+            Text('Spending Breakdown', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+            SizedBox(height: 4),
             Text(
               widget.period == 'monthly' ? 'This Month' : 'Last 7 days',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             if (widget.onPeriodChange != null) _PeriodToggle(period: widget.period, onChanged: widget.onPeriodChange!),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Categories', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
-                  const SizedBox(height: 12),
+                  Text('Categories', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  SizedBox(height: 12),
                   if (_isLoading)
-                    const Text('Loading...', style: TextStyle(color: Color(0xFF6B7280)))
+                    Text('Loading...', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
                   else ...[
                     row('Money Transfers', _totals['moneyTransfers']!, AppPalette.moneyTransfers),
                     row('Bank Transfers', _totals['bankTransfers']!, AppPalette.bankTransfers),
@@ -197,9 +198,9 @@ class _PeriodToggle extends StatelessWidget {
         child: GestureDetector(
           onTap: () => onChanged(value),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             decoration: BoxDecoration(
-              color: active ? const Color(0xFFFBBF24) : Colors.transparent,
+              color: active ? Color(0xFFFBBF24) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
@@ -208,7 +209,7 @@ class _PeriodToggle extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: active ? const Color(0xFF1F2937) : const Color(0xFF6B7280),
+                color: active ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -217,9 +218,9 @@ class _PeriodToggle extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-      child: Row(children: [button('weekly', 'Weekly'), const SizedBox(width: 4), button('monthly', 'Monthly')]),
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(12)),
+      child: Row(children: [button('weekly', 'Weekly'), SizedBox(width: 4), button('monthly', 'Monthly')]),
     );
   }
 }

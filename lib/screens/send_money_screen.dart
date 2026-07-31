@@ -77,15 +77,15 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF3C7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           children: [
-            const Text('Send Money', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1F2937))),
-            const SizedBox(height: 12),
+            Text('Send Money', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+            SizedBox(height: 12),
             Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10)),
               clipBehavior: Clip.antiAlias,
               child: Row(
                 children: [
@@ -94,35 +94,35 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Text(_isPhone ? 'Phone Number' : 'Merchant Code', style: const TextStyle(color: Color(0xFF6B7280))),
-            const SizedBox(height: 6),
+            SizedBox(height: 12),
+            Text(_isPhone ? 'Phone Number' : 'Merchant Code', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            SizedBox(height: 6),
             TextField(
               controller: _recipientController,
               keyboardType: _isPhone ? TextInputType.phone : TextInputType.text,
               decoration: InputDecoration(
                 hintText: _isPhone ? '078XXXXXXXX' : 'Enter merchant code',
                 filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.all(12),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                contentPadding: EdgeInsets.all(12),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
               ),
             ),
-            const SizedBox(height: 12),
-            const Text('Amount (RWF)', style: TextStyle(color: Color(0xFF6B7280))),
-            const SizedBox(height: 6),
+            SizedBox(height: 12),
+            Text('Amount (RWF)', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            SizedBox(height: 6),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 hintText: '0',
                 filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.all(12),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                contentPadding: EdgeInsets.all(12),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Wrap(
               spacing: 8,
               children: [
@@ -130,25 +130,25 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                   GestureDetector(
                     onTap: () => setState(() => _amountController.text = q.toString()),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                      child: Text(q.toString(), style: const TextStyle(color: Color(0xFF374151))),
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(8)),
+                      child: Text(q.toString(), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _handleSend,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFBBF24),
-                  foregroundColor: const Color(0xFF1F2937),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: Color(0xFFFBBF24),
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  padding: EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Send', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: Text('Send', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -170,13 +170,13 @@ class _ToggleButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        color: active ? const Color(0xFFFBBF24) : Colors.transparent,
+        padding: EdgeInsets.symmetric(vertical: 10),
+        color: active ? Color(0xFFFBBF24) : Colors.transparent,
         alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
-            color: active ? const Color(0xFF1F2937) : const Color(0xFF4B5563),
+            color: active ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
