@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "795912776219-a17k6bjintoqb02j4pt28ga4lou3fg26.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.finmo",
+            "certificate_hash": "5ac9f320f2f6c33825d91e252ededfd4c6bce4b6"
+          }
+        },
+        {
           "client_id": "795912776219-e7g1i1jqt6q3f2ul689nl2tqqi9q2ccn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

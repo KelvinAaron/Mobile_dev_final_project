@@ -58,7 +58,9 @@ class AuthService {
 
   Future<UserCredential> signInWithGoogle() async {
     if (!_googleInitialized) {
-      await _googleSignIn.initialize();
+      await _googleSignIn.initialize(
+        serverClientId: '795912776219-aajmpff2dq5errdf00mo0c1e4p4595hu.apps.googleusercontent.com',
+      );
       _googleInitialized = true;
     }
     final googleUser = await _googleSignIn.authenticate();
